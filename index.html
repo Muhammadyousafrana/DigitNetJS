@@ -1,0 +1,395 @@
+<! doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Handwriting Classifier - Neural Network Digit Recognition</title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="description" content="Advanced handwriting digit classifier using TensorFlow.js and deep convolutional neural networks">
+
+  <meta property="og:title" content="AI Handwriting Classifier">
+  <meta property="og: type" content="website">
+  <meta property="og:url" content="">
+  <meta property="og: image" content="">
+  <meta property="og:image:alt" content="AI Handwriting Recognition">
+
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.png">
+
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#6366f1">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- TensorFlow.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.1.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.5.1"></script>
+</head>
+
+<body>
+  <!-- Background Animation -->
+  <div class="animated-background">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="logo">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect width="40" height="40" rx="10" fill="url(#gradient)"/>
+          <path d="M12 20L18 26L28 14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="gradient" x1="0" y1="0" x2="40" y2="40">
+              <stop offset="0%" stop-color="#6366f1"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <h1>AI Handwriting Classifier</h1>
+      </div>
+      <div class="header-stats">
+        <div class="stat-item">
+          <span class="stat-label">Model Status</span>
+          <span class="stat-value" id="modelStatus">Initializing...</span>
+        </div>
+        <button class="btn btn-icon hidden" id="toggleVisorBtn" title="Toggle Training Graphs">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          <span>Show Graphs</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+
+      <!-- Welcome Section (before training) -->
+      <section class="section welcome-section" id="welcomeSection">
+        <div class="card glass-card welcome-card">
+          <div class="card-body text-center">
+            <div class="welcome-icon">
+              <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                <path d="M2 17l10 5 10-5"></path>
+                <path d="M2 12l10 5 10-5"></path>
+              </svg>
+            </div>
+            <h2>Welcome to AI Handwriting Classifier</h2>
+            <p class="welcome-description">
+              This application uses a Deep Convolutional Neural Network (CNN) to recognize handwritten digits (0-9).
+              <br>The model will be trained on the MNIST dataset with <strong>5,500 training samples</strong> and <strong>1,000 test samples</strong>.
+              <br>Features <strong>3 convolutional layers</strong> with increasing filter depths (32→64→128) for superior accuracy.
+            </p>
+            <div class="welcome-features">
+              <div class="feature-item">
+                <span class="feature-icon">🧠</span>
+                <strong>Deep Learning</strong>
+                <p>3 Convolutional Layers</p>
+              </div>
+              <div class="feature-item">
+                <span class="feature-icon">⚡</span>
+                <strong>Fast Training</strong>
+                <p>~2-3 minutes</p>
+              </div>
+              <div class="feature-item">
+                <span class="feature-icon">🎯</span>
+                <strong>High Accuracy</strong>
+                <p>~96-98% accuracy</p>
+              </div>
+            </div>
+            <div class="model-info">
+              <h3>Model Architecture</h3>
+              <div class="architecture-summary">
+                <span class="layer-badge">Input (28×28)</span>
+                <span class="arrow">→</span>
+                <span class="layer-badge">Conv2D (32)</span>
+                <span class="arrow">→</span>
+                <span class="layer-badge">Pool</span>
+                <span class="arrow">→</span>
+                <span class="layer-badge">Conv2D (64)</span>
+                <span class="arrow">→</span>
+                <span class="layer-badge">Pool</span>
+                <span class="arrow">→</span>
+                <span class="layer-badge">Conv2D (128)</span>
+                <span class="arrow">→</span>
+                <span class="layer-badge">Dense (256)</span>
+                <span class="arrow">→</span>
+                <span class="layer-badge">Dense (128)</span>
+                <span class="arrow">→</span>
+                <span class="layer-badge">Dense (64)</span>
+                <span class="arrow">→</span>
+                <span class="layer-badge">Output (10)</span>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-large" id="startTrainingBtn">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+              </svg>
+              Start Training
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Training Progress Section -->
+      <section class="section training-section hidden" id="trainingSection">
+        <div class="card glass-card">
+          <div class="card-header">
+            <h2>🧠 Training Neural Network</h2>
+            <p>Training a deep convolutional neural network on the MNIST dataset</p>
+          </div>
+          <div class="card-body">
+            <div class="progress-container">
+              <div class="progress-info">
+                <span class="progress-label">Training Progress</span>
+                <span class="progress-percentage" id="progressPercentage">0%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+              <div class="training-stats">
+                <div class="training-stat">
+                  <span class="stat-icon">📊</span>
+                  <span class="stat-text">Epoch:  <strong id="currentEpoch">0/10</strong></span>
+                </div>
+                <div class="training-stat">
+                  <span class="stat-icon">🎯</span>
+                  <span class="stat-text">Accuracy: <strong id="currentAccuracy">0%</strong></span>
+                </div>
+                <div class="training-stat">
+                  <span class="stat-icon">📉</span>
+                  <span class="stat-text">Loss:  <strong id="currentLoss">-</strong></span>
+                </div>
+                <div class="training-stat">
+                  <span class="stat-icon">✅</span>
+                  <span class="stat-text">Val Accuracy: <strong id="currentValAccuracy">0%</strong></span>
+                </div>
+              </div>
+            </div>
+            <div class="loader-container">
+              <div class="neural-loader">
+                <div class="neural-node"></div>
+                <div class="neural-node"></div>
+                <div class="neural-node"></div>
+                <div class="neural-node"></div>
+              </div>
+              <p class="loader-text">Training in progress...  Please wait</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Drawing and Prediction Section -->
+      <section class="section drawing-section hidden" id="drawingSection">
+        <div class="grid-layout">
+
+          <!-- Drawing Canvas Card -->
+          <div class="card glass-card canvas-card">
+            <div class="card-header">
+              <h2>✍️ Draw a Digit (0-9)</h2>
+              <p>Draw any digit in the canvas below</p>
+            </div>
+            <div class="card-body">
+              <div class="canvas-container">
+                <canvas id="canvas" width="280" height="280"></canvas>
+                <div class="canvas-overlay" id="canvasOverlay">
+                  <div class="overlay-content">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M12 5v14M5 12h14" stroke-width="2" stroke-linecap="round"></path>
+                    </svg>
+                    <p>Start drawing here</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pen Size Control -->
+              <div class="pen-size-control">
+                <label for="penSize">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 20h9M16. 5 3. 5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                  </svg>
+                  Pen Size:  <strong id="penSizeValue">24</strong>px
+                </label>
+                <input type="range" id="penSize" min="4" max="40" value="24" step="2">
+                <div class="pen-preview">
+                  <div class="pen-preview-dot" id="penPreview"></div>
+                </div>
+              </div>
+
+              <div class="canvas-controls">
+                <button class="btn btn-primary" id="classifyBtn" disabled>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 11 12 14 22 4"></polyline>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                  </svg>
+                  Classify Digit
+                </button>
+                <button class="btn btn-secondary" id="clearBtn">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  Clear Canvas
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prediction Results Card -->
+          <div class="card glass-card prediction-card">
+            <div class="card-header">
+              <h2>🎯 Prediction Results</h2>
+              <p>AI confidence scores for each digit</p>
+            </div>
+            <div class="card-body">
+              <div class="prediction-result" id="predictionResult">
+                <div class="result-placeholder">
+                  <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 6v6l4 2"></path>
+                  </svg>
+                  <p>Draw a digit and click "Classify" to see predictions</p>
+                </div>
+              </div>
+              <div class="predictions-list hidden" id="predictionsList">
+                <div class="predicted-digit" id="predictedDigit">-</div>
+                <div class="confidence-bars" id="confidenceBars">
+                  <!-- Generated dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Model Architecture Section -->
+      <section class="section architecture-section hidden" id="architectureSection">
+        <div class="card glass-card">
+          <div class="card-header">
+            <h2>🏗️ Neural Network Architecture</h2>
+            <p>Deep Convolutional Neural Network (CNN) with 3 conv layers</p>
+          </div>
+          <div class="card-body">
+            <div class="architecture-visual">
+              <div class="layer-item">
+                <div class="layer-icon input-layer">INPUT</div>
+                <div class="layer-info">
+                  <strong>Input Layer</strong>
+                  <span>28×28×1</span>
+                </div>
+              </div>
+              <div class="layer-arrow">→</div>
+              <div class="layer-item">
+                <div class="layer-icon conv-layer">CONV</div>
+                <div class="layer-info">
+                  <strong>Conv2D + ReLU</strong>
+                  <span>32 filters, 3×3</span>
+                </div>
+              </div>
+              <div class="layer-arrow">→</div>
+              <div class="layer-item">
+                <div class="layer-icon pool-layer">POOL</div>
+                <div class="layer-info">
+                  <strong>MaxPooling2D</strong>
+                  <span>2×2</span>
+                </div>
+              </div>
+              <div class="layer-arrow">→</div>
+              <div class="layer-item">
+                <div class="layer-icon conv-layer">CONV</div>
+                <div class="layer-info">
+                  <strong>Conv2D + ReLU</strong>
+                  <span>64 filters, 3×3</span>
+                </div>
+              </div>
+              <div class="layer-arrow">→</div>
+              <div class="layer-item">
+                <div class="layer-icon pool-layer">POOL</div>
+                <div class="layer-info">
+                  <strong>MaxPooling2D</strong>
+                  <span>2×2</span>
+                </div>
+              </div>
+              <div class="layer-arrow">→</div>
+              <div class="layer-item">
+                <div class="layer-icon conv-layer">CONV</div>
+                <div class="layer-info">
+                  <strong>Conv2D + ReLU</strong>
+                  <span>128 filters, 3×3</span>
+                </div>
+              </div>
+              <div class="layer-arrow">→</div>
+              <div class="layer-item">
+                <div class="layer-icon dense-layer">FLATTEN</div>
+                <div class="layer-info">
+                  <strong>Flatten</strong>
+                  <span>1152 units</span>
+                </div>
+              </div>
+              <div class="layer-arrow">→</div>
+              <div class="layer-item">
+                <div class="layer-icon dense-layer">DENSE</div>
+                <div class="layer-info">
+                  <strong>Dense + ReLU</strong>
+                  <span>256 units</span>
+                </div>
+              </div>
+              <div class="layer-arrow">→</div>
+              <div class="layer-item">
+                <div class="layer-icon dense-layer">DENSE</div>
+                <div class="layer-info">
+                  <strong>Dense + ReLU</strong>
+                  <span>128 units</span>
+                </div>
+              </div>
+              <div class="layer-arrow">→</div>
+              <div class="layer-item">
+                <div class="layer-icon dense-layer">DENSE</div>
+                <div class="layer-info">
+                  <strong>Dense + ReLU</strong>
+                  <span>64 units</span>
+                </div>
+              </div>
+              <div class="layer-arrow">→</div>
+              <div class="layer-item">
+                <div class="layer-icon output-layer">OUTPUT</div>
+                <div class="layer-info">
+                  <strong>Dense + Softmax</strong>
+                  <span>10 classes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Hidden canvas for image processing -->
+  <img id="canvasimg" style="display: none;" alt="Canvas capture" src="">
+
+  <!-- Toast Notifications -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="/js/data.js" type="module"></script>
+  <script src="/js/app.js" type="module"></script>
+
+</body>
+
+</html>
